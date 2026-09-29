@@ -1,0 +1,51 @@
+services:
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    user: root
+    depends_on:
+      - prometheus
+    restart: always
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus_data:/prometheus
+    command:
+      --config.file=/etc/prometheus/prometheus.yml
+    restart: always
+  
+  node_exporter:
+    image: prom/node-exporter
+    container_name: node_exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    restart: always
+
+  ollama_exporter:
+    image: ghcr.io/maravexa/ollama-exporter:latest
+    container_name: ollama_exporter
+    environment:
+      - 'OLLAMA_URL=http://ollama:11434'
+    restart: always
+
+  
+volumes:
+  prometheus_data:
+    name: prometheus_data
