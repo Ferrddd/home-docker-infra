@@ -2,14 +2,19 @@ services:
   ollama:
     container_name: ollama
     image: ollama/ollama:rocm
-    restart: always
     volumes:
       - /usr/share/ollama/.ollama:/root/.ollama
     devices:
       - /dev/kfd
       - /dev/dri
+    ports:
+      - 11434:11434
     environment:
       - 'HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION-10.3.0}'
+      - 'OLLAMA_CONTEXT_LENGTH=28000'
+      - 'OLLAMA_GPU_OVERHEAD=2147483648'
+      - 'LLAMA_ARG_FIT_TARGET=3072'
+    restart: always
 
   open-webui:
     container_name: open-webui
@@ -23,6 +28,7 @@ services:
     restart: always
     environment:
       - OLLAMA_BASE_URL=http://ollama_exporter:9401
+
 
 volumes:
   open-webui-data:
